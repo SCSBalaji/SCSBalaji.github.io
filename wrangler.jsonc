@@ -1,5 +1,5 @@
 {
-    "name": "worker-name",
+    "name": "my-project",
     "compatibility_date": "2025-11-27",
     "assets": {
       "directory": "./dist"

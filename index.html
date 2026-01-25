@@ -1,10 +1,70 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>SCS Balaji</title>
-</head>
-<body>
-  <h1>scsbalaji.tech</h1>
-  <p>My first live domain 🚀</p>
-</body>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, height=device-height" />
+        <meta name="description" content="Sangineedi Chaitanya Satya Balaji's portfolio." />
+        <meta name="keywords" content="Sangineedi Chaitanya Satya Balaji, portfolio, web development, programming" />
+        <meta name="author" content="Sangineedi Chaitanya Satya Balaji" />
+
+        <title>Sangineedi Chaitanya Satya Balaji - Portfolio</title>
+        
+        <link rel="stylesheet" href="navbar.css">
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="background.css">
+        <link rel="stylesheet" href="buttons.css">
+        <link rel="stylesheet" href="notifications.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+    </head>
+    <body>
+        <script src="buttons.js"></script>
+        <!--Navigation Bar-->
+        <nav>
+            <ul class="navbar glassify">
+                <li><a class="page activeLink" href="#">Home</a></li>
+                <li><a class="page" href="#" onclick="showNotification('Unavailable', 'About section is under construction.');">About</a></li>
+                <li><a class="page" href="#" onclick="showNotification('Unavailable', 'Services section is under construction.');">Projects</a></li>
+                <li><a class="page" href="#" onclick="showNotification('Unavailable', 'Contact section is under construction.');">Skills</a></li>
+                <li><a class="page" href="#" onclick="showNotification('Unavailable', 'Blog section is under construction.');">Contact</a></li>
+                <span class="toggleMenu"></span>
+            </ul>
+            <script src="navbar.js"></script>   
+        </nav>
+
+        <script src="script.js"></script>
+        
+
+        <!--Home-->
+        <header>
+            <canvas id="background" width="32" height="32"></canvas>
+            <script src="background.js"></script>
+            <p class="welcome-text"><span>Welcome to My Portfolio</span></p>
+
+            <h1 class="main-heading">Hi, I'm <span class="name-highlight">SCSBalaji</span></h1>
+            <h2>Full Stack Developer</h2>
+            <br>
+            <p class="description">This new version of my portfolio is still a work in progress, but I'm excited to share it with you!</p>
+            <br>
+            <div class="spbuttons">
+                <a id="ctmbutton"><span id="ctme">Go to Portfolio</span></a>
+            </div>
+            <br>
+            <div class="portfolios">
+                <a href="https://www.linkedin.com/in/scsbalaji/" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="https://github.com/SCSBalaji" target="_blank"><i class="fa-brands fa-github"></i></a>
+                <a target="_blank"><i class="fa-brands fa-instagram"></i></a>
+                <a target="_blank"><i class="fa-brands fa-facebook"></i></a>
+            </div>
+        </header>
+
+        <!--Notifications-->
+        <div class="notifications">
+            <span class="notifytop"><span class="notifytitle">Notification</span><i class="fa-solid fa-x"></i></span>
+            <div class="notifybody"><span class="notifyicon"><i class="fa-solid fa-bell"></i></span><span class="notifymsg">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Aliquam, veritatis?</span></div>
+        </div>
+        <glassi-fy></glassi-fy>
+        <script src="notify.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/Saviru/GlassiFy@1.0.0/glassify.js"></script>
+    </body>
 </html>
+    

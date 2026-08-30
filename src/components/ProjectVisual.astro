@@ -1,0 +1,367 @@
+---
+/**
+ * Generated project imagery.
+ *
+ * Six abstract technical diagrams drawn from the same primitives as the rest of
+ * the site — hairlines, engineering grid, one accent element. They exist so a
+ * project without a screenshot still has a strong visual, without resorting to
+ * stock photography or a generic developer illustration.
+ *
+ * Decorative by definition: the project title and description sit right beside
+ * them, so they're hidden from assistive tech rather than given invented alt
+ * text. Real screenshots go through `image:` in the project frontmatter.
+ */
+interface Props {
+  /** 1–6. ProjectCard derives this from frontmatter or a hash of the title. */
+  variant: number;
+  class?: string;
+}
+
+const { variant, class: className } = Astro.props;
+const v = ((variant - 1) % 6 + 6) % 6 + 1;
+
+const W = 640;
+const H = 400;
+const STEP = 40;
+
+const grid = [
+  ...Array.from({ length: W / STEP - 1 }, (_, i) => `M${(i + 1) * STEP} 0V${H}`),
+  ...Array.from({ length: H / STEP - 1 }, (_, i) => `M0 ${(i + 1) * STEP}H${W}`),
+].join('');
+
+/* --- 1. Ledger bars against a budget line --- */
+const bars = [
+  { y: 92, w: 200 },
+  { y: 144, w: 330 },
+  { y: 196, w: 265 },
+  { y: 248, w: 445, accent: true },
+  { y: 300, w: 165 },
+];
+
+/* --- 2. Delivery pipeline: commit rail in, stages across, rollback loop out --- */
+const STAGE_W = 78;
+const STAGE_H = 64;
+const STAGE_Y = 164;
+const STAGE_MID = STAGE_Y + STAGE_H / 2;
+const stageX = [90, 208, 326, 444];
+const stages = stageX.map((x, i) => ({ x, accent: i === stageX.length - 1 }));
+/** Tick marks on the commit rail. First and last sit over the outer stages. */
+const commits = Array.from({ length: 8 }, (_, i) => 129 + i * 50.57);
+const firstMid = stageX[0]! + STAGE_W / 2;
+const lastMid = stageX[stageX.length - 1]! + STAGE_W / 2;
+
+/* --- 3. Sample grid with one selected cell --- */
+const CELL = 36;
+const GAP = 12;
+const gridOriginX = 158;
+const gridOriginY = 110;
+const filled = new Set(['0,1', '1,3', '2,0', '3,2', '5,1', '6,3']);
+const cells = Array.from({ length: 7 }, (_, col) =>
+  Array.from({ length: 4 }, (_, row) => ({
+    col,
+    row,
+    x: gridOriginX + col * (CELL + GAP),
+    y: gridOriginY + row * (CELL + GAP),
+    on: filled.has(`${col},${row}`),
+    accent: col === 4 && row === 2,
+  })),
+).flat();
+const sel = cells.find((c) => c.accent)!;
+
+/* --- 4. Peer mesh --- */
+const CX = 320;
+const CY = 200;
+const R = 118;
+const nodes = Array.from({ length: 6 }, (_, i) => {
+  const angle = (Math.PI / 3) * i - Math.PI / 2;
+  return {
+    x: Number((CX + R * Math.cos(angle)).toFixed(1)),
+    y: Number((CY + R * Math.sin(angle)).toFixed(1)),
+  };
+});
+const chords: [number, number][] = [
+  [0, 2],
+  [0, 3],
+  [1, 4],
+  [2, 5],
+  [3, 5],
+  [1, 3],
+];
+
+/* --- 6. Series against a threshold --- */
+const series = [
+  [90, 270],
+  [128, 250],
+  [166, 262],
+  [204, 225],
+  [242, 238],
+  [280, 196],
+  [318, 210],
+  [356, 168],
+  [394, 182],
+  [432, 140],
+  [470, 158],
+  [508, 132],
+  [546, 120],
+] as const;
+const THRESHOLD = 150;
+const breaches = series.filter(([, y]) => y < THRESHOLD);
+---
+
+<div class:list={['visual bg-sunken', className]}>
+  <svg
+    viewBox={`0 0 ${W} ${H}`}
+    class="h-full w-full"
+    fill="none"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d={grid} class="grid-lines" stroke-width="1" />
+
+    {
+      v === 1 && (
+        <g>
+          <path d="M90 60V340" class="rule-strong" stroke-width="1.5" />
+          {bars.map((bar) => (
+            <rect
+              x="90"
+              y={bar.y}
+              width={bar.w}
+              height="20"
+              rx="1"
+              class={bar.accent ? 'shape-accent' : 'shape'}
+              data-accent={bar.accent ? '' : undefined}
+            />
+          ))}
+          <path d="M470 66V334" class="rule-accent" stroke-width="1.5" stroke-dasharray="5 6" />
+          <path d="M90 340h420" class="rule" stroke-width="1" />
+        </g>
+      )
+    }
+
+    {
+      v === 2 && (
+        <g>
+          <path d="M90 88h432" class="rule" stroke-width="1" />
+          {commits.map((x) => (
+            <path d={`M${x.toFixed(1)} 80v16`} class="rule-strong" stroke-width="1.5" />
+          ))}
+
+          <path
+            d={`M${firstMid} 96v50`}
+            class="rule"
+            stroke-width="1"
+            stroke-dasharray="4 5"
+          />
+          <path
+            d={`M${firstMid - 5} 146l5 6 5-6`}
+            class="rule-strong"
+            stroke-width="1.5"
+          />
+
+          {stages.map((stage) => (
+            <g>
+              <rect
+                x={stage.x}
+                y={STAGE_Y}
+                width={STAGE_W}
+                height={STAGE_H}
+                rx="3"
+                class={stage.accent ? 'shape-accent' : 'shape'}
+                data-accent={stage.accent ? '' : undefined}
+              />
+              <path
+                d={`M${stage.x + 14} ${STAGE_Y + 24}h50M${stage.x + 14} ${STAGE_Y + 42}h34`}
+                class={stage.accent ? 'rule-accent' : 'rule-strong'}
+                stroke-width="1.5"
+              />
+            </g>
+          ))}
+
+          {stageX.slice(0, -1).map((x, i) => {
+            const from = x + STAGE_W;
+            const tone = i === stageX.length - 2 ? 'rule-accent' : 'rule-strong';
+            return (
+              <g class={tone} stroke-width="1.5">
+                <path d={`M${from} ${STAGE_MID}h30`} />
+                <path d={`M${from + 24} ${STAGE_MID - 6}l6 6-6 6`} />
+              </g>
+            );
+          })}
+
+          <path
+            d={`M${lastMid} ${STAGE_Y + STAGE_H}v64a12 12 0 0 1-12 12H${firstMid + 12}a12 12 0 0 1-12-12v-64`}
+            class="rule"
+            stroke-width="1.5"
+            stroke-dasharray="4 6"
+          />
+          <path
+            d={`M${firstMid - 5} ${STAGE_Y + STAGE_H + 14}l5-6 5 6`}
+            class="rule"
+            stroke-width="1.5"
+          />
+          <circle cx="306" cy={STAGE_Y + STAGE_H + 76} r="4.5" class="dot" />
+        </g>
+      )
+    }
+
+    {
+      v === 3 && (
+        <g>
+          {cells.map((cell) => (
+            <rect
+              x={cell.x}
+              y={cell.y}
+              width={CELL}
+              height={CELL}
+              rx="1.5"
+              class={cell.accent ? 'shape-accent' : cell.on ? 'shape-filled' : 'shape'}
+              data-accent={cell.accent ? '' : undefined}
+            />
+          ))}
+          <g class="rule-accent" stroke-width="1.75" data-accent>
+            <path d={`M${sel.x - 11} ${sel.y - 3}v-8h8`} />
+            <path d={`M${sel.x + CELL + 3} ${sel.y - 11}h8v8`} />
+            <path d={`M${sel.x + CELL + 11} ${sel.y + CELL + 3}v8h-8`} />
+            <path d={`M${sel.x - 3} ${sel.y + CELL + 11}h-8v-8`} />
+          </g>
+        </g>
+      )
+    }
+
+    {
+      v === 4 && (
+        <g>
+          <circle cx={CX} cy={CY} r={R} class="rule" stroke-width="1" stroke-dasharray="3 7" />
+          {chords.map(([a, b]) => (
+            <path
+              d={`M${nodes[a]!.x} ${nodes[a]!.y}L${nodes[b]!.x} ${nodes[b]!.y}`}
+              class="rule-strong"
+              stroke-width="1"
+            />
+          ))}
+          {nodes.map((node, i) =>
+            i === 0 ? (
+              <circle cx={node.x} cy={node.y} r="15" class="shape-accent" data-accent />
+            ) : (
+              <circle cx={node.x} cy={node.y} r="13" class="shape" />
+            ),
+          )}
+          <circle cx={CX} cy={CY} r="4" class="dot" />
+        </g>
+      )
+    }
+
+    {
+      v === 5 && (
+        <g>
+          <rect x="110" y="90" width="250" height="165" rx="3" class="shape" />
+          <rect x="140" y="120" width="250" height="165" rx="3" class="shape" />
+          <rect x="170" y="150" width="250" height="165" rx="3" class="shape-filled" />
+          <path d="M190 190h150M190 216h110M190 242h130M190 268h80" class="rule-strong" stroke-width="1.5" />
+          <path d="M420 232h44" class="rule-accent" stroke-width="1.5" />
+          <path d="M456 226l8 6-8 6" class="rule-accent" stroke-width="1.5" />
+          {[140, 180, 220, 260].map((y, i) => (
+            <rect
+              x="476"
+              y={y}
+              width="28"
+              height="28"
+              rx="1.5"
+              class={i === 2 ? 'shape-accent' : 'shape'}
+              data-accent={i === 2 ? '' : undefined}
+            />
+          ))}
+        </g>
+      )
+    }
+
+    {
+      v === 6 && (
+        <g>
+          <path d="M90 320h460" class="rule-strong" stroke-width="1.5" />
+          <path d="M90 80v240" class="rule-strong" stroke-width="1.5" />
+          <path
+            d={`M90 ${THRESHOLD}h460`}
+            class="rule-accent"
+            stroke-width="1.5"
+            stroke-dasharray="5 6"
+          />
+          <path
+            d={series.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x} ${y}`).join('')}
+            class="rule-series"
+            stroke-width="2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+          {breaches.map(([x, y]) => (
+            <circle cx={x} cy={y} r="5" class="dot-accent" data-accent />
+          ))}
+        </g>
+      )
+    }
+  </svg>
+</div>
+
+<style>
+  .grid-lines {
+    stroke: var(--grid-ink);
+  }
+
+  .rule {
+    stroke: var(--line);
+  }
+
+  .rule-strong {
+    stroke: var(--line-strong);
+  }
+
+  .rule-accent {
+    stroke: var(--accent);
+  }
+
+  .rule-series {
+    stroke: var(--ink-secondary);
+  }
+
+  .shape {
+    fill: var(--canvas-raised);
+    stroke: var(--line-strong);
+    stroke-width: 1.25;
+  }
+
+  .shape-filled {
+    fill: var(--canvas);
+    stroke: var(--line-strong);
+    stroke-width: 1.25;
+  }
+
+  .shape-accent {
+    fill: var(--accent-wash);
+    stroke: var(--accent);
+    stroke-width: 1.75;
+  }
+
+  .dot {
+    fill: var(--line-strong);
+  }
+
+  .dot-accent {
+    fill: var(--accent);
+  }
+
+  /* One quiet flourish: the accent element eases forward when the card is
+     hovered or keyboard-focused. Nothing moves for reduced-motion visitors. */
+  [data-accent] {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.55s var(--ease-out-quint);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.project-card:hover) [data-accent],
+    :global(.project-card:focus-within) [data-accent] {
+      transform: scale(1.07);
+    }
+  }
+</style>

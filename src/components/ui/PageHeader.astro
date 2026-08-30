@@ -1,0 +1,54 @@
+---
+/**
+ * Page-level header for the standalone routes. Same asymmetric proportions as
+ * Section.astro's header, but with an `<h1>` and the grid texture behind it, so
+ * /projects and /blog open the way the homepage does.
+ */
+import Eyebrow from './Eyebrow.astro';
+
+interface Props {
+  label: string;
+  title: string;
+  intro?: string;
+  class?: string;
+}
+
+const { label, title, intro, class: className } = Astro.props;
+const hasAction = Astro.slots.has('action');
+---
+
+<header class:list={['relative overflow-hidden border-b border-line', className]}>
+  <div class="header-texture grid-texture" aria-hidden="true"></div>
+
+  <div class="shell relative pt-20 pb-16 sm:pt-24 sm:pb-20">
+    <div class="grid gap-x-10 gap-y-6 lg:grid-cols-12">
+      <div class="lg:col-span-7">
+        <Eyebrow label={label} />
+        <h1 class="mt-6 text-title text-ink">{title}</h1>
+      </div>
+
+      {
+        (intro || hasAction) && (
+          <div class="lg:col-span-4 lg:col-start-9 lg:pt-10">
+            {intro && <p class="text-lead text-ink-2 measure">{intro}</p>}
+            {hasAction && (
+              <div class:list={['flex flex-wrap items-center gap-5', intro && 'mt-6']}>
+                <slot name="action" />
+              </div>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</header>
+
+<style>
+  .header-texture {
+    position: absolute;
+    inset: 0;
+    -webkit-mask-image: radial-gradient(110% 100% at 18% 0%, #000 0%, transparent 70%);
+    mask-image: radial-gradient(110% 100% at 18% 0%, #000 0%, transparent 70%);
+    pointer-events: none;
+  }
+</style>

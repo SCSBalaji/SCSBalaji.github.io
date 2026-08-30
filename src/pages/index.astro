@@ -1,0 +1,29 @@
+---
+/**
+ * The single-page experience. Section order is fixed here and nowhere else;
+ * every section owns its own data fetching and its own anchor id.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Contact from '~/components/sections/Contact.astro';
+import Education from '~/components/sections/Education.astro';
+import Experience from '~/components/sections/Experience.astro';
+import FeaturedBlog from '~/components/sections/FeaturedBlog.astro';
+import FeaturedProjects from '~/components/sections/FeaturedProjects.astro';
+import Hero from '~/components/sections/Hero.astro';
+import Highlights from '~/components/sections/Highlights.astro';
+import Profiles from '~/components/sections/Profiles.astro';
+import Skills from '~/components/sections/Skills.astro';
+import { site } from '~/data/site';
+---
+
+<BaseLayout title={site.seo.title} exactTitle description={site.seo.description}>
+  <Hero />
+  <FeaturedProjects />
+  <Skills />
+  <Experience />
+  <Education />
+  <Highlights />
+  <FeaturedBlog />
+  <Profiles />
+  <Contact />
+</BaseLayout>

@@ -1,0 +1,104 @@
+---
+/**
+ * Public profiles. Each one is a mono lettermark tile plus a line on what's
+ * actually there — no follower counts or scraped statistics, because nothing
+ * here can be kept accurate on a static site.
+ */
+import { profiles } from '~/data/profiles';
+import Icon from '~/components/ui/Icon.astro';
+import Section from '~/components/ui/Section.astro';
+---
+
+<Section
+  id="profiles"
+  index="07"
+  label="Elsewhere"
+  title="Profiles worth checking"
+  intro="The platforms I actually keep up to date. Anything I've stopped using isn't listed."
+>
+  <ul class="grid sm:grid-cols-2 lg:grid-cols-3">
+    {
+      profiles.map((profile, i) => (
+        <li class="profile-cell" data-reveal style={`--reveal-delay: ${i * 45}ms`}>
+          <a
+            href={profile.url}
+            target="_blank"
+            rel="noopener noreferrer me"
+            class="profile-tile flex h-full flex-col p-6"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <span class="mark mono-label" aria-hidden="true">{profile.mark}</span>
+              <Icon name="arrow-up-right" size={15} class="profile-arrow" />
+            </div>
+
+            <h3 class="profile-name mt-6 text-subheading text-ink">{profile.platform}</h3>
+            <p class="mono-meta mt-1 text-ink-3">{profile.handle}</p>
+            <p class="mt-3 text-micro text-ink-2">{profile.context}</p>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Section>
+
+<style>
+  /* Cells draw their own 1px ring. Adjacent rings overlap exactly, so the grid
+     reads as shared hairlines — and a partly-filled last row leaves no stranded
+     block of border colour behind it. */
+  .profile-cell {
+    background-color: var(--canvas);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+
+  .profile-tile {
+    transition: background-color 0.3s ease;
+  }
+
+  .profile-tile:hover {
+    background-color: var(--canvas-sunken);
+  }
+
+  .mark {
+    display: grid;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    color: var(--ink-secondary);
+    letter-spacing: 0.08em;
+    transition:
+      border-color 0.25s ease,
+      color 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .profile-tile:hover .mark {
+    border-color: var(--accent);
+    background-color: var(--accent-wash);
+    color: var(--accent);
+  }
+
+  .profile-name {
+    transition: color 0.2s ease;
+  }
+
+  .profile-tile:hover .profile-name {
+    color: var(--accent);
+  }
+
+  .profile-arrow {
+    color: var(--ink-muted);
+    opacity: 0;
+    transform: translate(-3px, 3px);
+    transition:
+      opacity 0.3s var(--ease-out-quint),
+      transform 0.3s var(--ease-out-quint);
+  }
+
+  .profile-tile:hover .profile-arrow,
+  .profile-tile:focus-visible .profile-arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+</style>

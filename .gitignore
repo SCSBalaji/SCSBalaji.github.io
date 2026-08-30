@@ -1,0 +1,29 @@
+# build output
+dist/
+
+# generated types + content cache
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+*.log
+npm-debug.log*
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# local agent tooling. The vendored skill snapshots are large and re-fetchable
+# from skills-lock.json, so only the lockfile and launch.json are tracked.
+.agents/
+.claude/skills/
+.claude/settings.local.json

@@ -1,0 +1,83 @@
+---
+/**
+ * Highlights: certifications, hackathons, milestones. A compact two-column
+ * strip of hairline rows — scannable in one pass, deliberately not expanded
+ * into a second résumé.
+ */
+import { highlights } from '~/data/highlights';
+import Icon from '~/components/ui/Icon.astro';
+import Section from '~/components/ui/Section.astro';
+---
+
+<Section
+  id="highlights"
+  index="05"
+  label="Highlights"
+  title="Certifications & milestones"
+  intro="The credentials and results worth listing, and nothing padded out to fill space."
+>
+  <ul class="grid border-t border-line md:grid-cols-2 md:gap-x-14">
+    {
+      highlights.map((item, i) => {
+        const Wrapper = item.url ? 'a' : 'div';
+        const linkProps = item.url
+          ? { href: item.url, target: '_blank', rel: 'noopener noreferrer' }
+          : {};
+
+        return (
+          <li
+            class="highlight border-b border-line"
+            data-reveal
+            style={`--reveal-delay: ${i * 50}ms`}
+          >
+            <Wrapper class="highlight-body block py-5" {...linkProps}>
+              <p class="flex items-center justify-between gap-4">
+                <span class="mono-label text-ink-3">{item.kind}</span>
+                <span class="mono-label text-ink-3 tabular-nums">{item.date}</span>
+              </p>
+
+              <h3 class="highlight-title mt-3 text-subheading text-ink">
+                {item.title}
+                {item.url && (
+                  <Icon
+                    name="arrow-up-right"
+                    size={14}
+                    class="highlight-arrow ml-1.5 inline-block align-baseline"
+                  />
+                )}
+              </h3>
+
+              <p class="mt-1 text-meta text-ink-2">{item.source}</p>
+
+              {item.detail && (
+                <p class="mt-2 text-micro text-ink-3 measure-tight">{item.detail}</p>
+              )}
+            </Wrapper>
+          </li>
+        );
+      })
+    }
+  </ul>
+</Section>
+
+<style>
+  .highlight-arrow {
+    color: var(--ink-muted);
+    transition:
+      transform 0.3s var(--ease-out-quint),
+      color 0.2s ease;
+  }
+
+  a.highlight-body:hover .highlight-title {
+    color: var(--accent);
+  }
+
+  a.highlight-body:hover .highlight-arrow {
+    color: var(--accent);
+    transform: translate(1px, -1px);
+  }
+
+  .highlight-title {
+    transition: color 0.2s ease;
+  }
+</style>

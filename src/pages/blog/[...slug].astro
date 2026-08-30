@@ -1,0 +1,136 @@
+---
+/**
+ * A single blog post. Nothing renders here until a markdown file lands in
+ * `src/content/blog/` — `getStaticPaths` returns an empty array while the
+ * collection is empty, which is a valid build.
+ */
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import { getPosts, readingTimeFor } from '~/lib/content';
+import { Image } from 'astro:assets';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ArrowLink from '~/components/ui/ArrowLink.astro';
+import Prose from '~/components/ui/Prose.astro';
+import Tag from '~/components/ui/Tag.astro';
+import { formatDate, isoDate } from '~/lib/format';
+import { formatReadingTime } from '~/lib/reading-time';
+import { absoluteUrl, blogPostingSchema, breadcrumbSchema } from '~/lib/seo';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const { data } = post;
+const minutes = readingTimeFor(post);
+const url = absoluteUrl(Astro.url.pathname, Astro.site);
+
+const schema = [
+  blogPostingSchema({
+    title: data.title,
+    description: data.description,
+    url,
+    pubDate: data.pubDate,
+    updatedDate: data.updatedDate,
+    tags: data.tags,
+    image: data.cover ? absoluteUrl(data.cover.src, Astro.site) : undefined,
+  }),
+  breadcrumbSchema([
+    { name: 'Home', url: absoluteUrl('/') },
+    { name: 'Blog', url: absoluteUrl('/blog') },
+    { name: data.title, url },
+  ]),
+];
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  type="article"
+  noindex={data.draft}
+  schema={schema}
+>
+  <article class="shell pt-16 pb-section sm:pt-20">
+    <div class="mx-auto max-w-3xl">
+      <ArrowLink href="/blog" icon="arrow-left" size="sm" class="mb-10">
+        Back to all posts
+      </ArrowLink>
+
+      <header>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <time class="mono-label text-ink-3" datetime={isoDate(data.pubDate)}>
+            {formatDate(data.pubDate)}
+          </time>
+          <span class="mono-label text-ink-3" aria-hidden="true">·</span>
+          <span class="mono-label text-ink-3">{formatReadingTime(minutes)}</span>
+          {
+            data.draft && (
+              <>
+                <span class="mono-label text-ink-3" aria-hidden="true">
+                  ·
+                </span>
+                <span class="mono-label text-critical">Draft</span>
+              </>
+            )
+          }
+        </div>
+
+        <h1 class="mt-6 text-title text-ink">{data.title}</h1>
+
+        <p class="mt-5 text-lead text-ink-2">{data.description}</p>
+
+        {
+          data.updatedDate && (
+            <p class="mono-meta mt-5 text-ink-3">
+              Updated{' '}
+              <time datetime={isoDate(data.updatedDate)}>
+                {formatDate(data.updatedDate)}
+              </time>
+            </p>
+          )
+        }
+
+        {
+          data.tags.length > 0 && (
+            <ul class="mt-6 flex flex-wrap gap-1.5">
+              {data.tags.map((tag) => (
+                <li>
+                  <Tag>{tag}</Tag>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </header>
+
+      {
+        data.cover && (
+          <figure class="mt-12 overflow-hidden rounded-md border border-line">
+            <Image
+              src={data.cover}
+              alt={data.coverAlt ?? data.title}
+              widths={[640, 960, 1280]}
+              sizes="(min-width: 768px) 48rem, 100vw"
+              class="h-auto w-full"
+            />
+          </figure>
+        )
+      }
+
+      <hr class="mt-12 border-t border-line" />
+
+      <Prose class="mt-12">
+        <Content />
+      </Prose>
+
+      <footer class="mt-16 border-t border-line pt-8">
+        <ArrowLink href="/blog" icon="arrow-left" size="sm">
+          Back to all posts
+        </ArrowLink>
+      </footer>
+    </div>
+  </article>
+</BaseLayout>

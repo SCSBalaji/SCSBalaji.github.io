@@ -1,0 +1,110 @@
+---
+/**
+ * A blog post in list form. Used on the homepage strip and on /blog, so the two
+ * can't drift. Nothing here assumes a cover image exists.
+ */
+import { formatDate, isoDate } from '~/lib/format';
+import { formatReadingTime } from '~/lib/reading-time';
+import { readingTimeFor, type Post } from '~/lib/content';
+import Icon from '~/components/ui/Icon.astro';
+import Tag from '~/components/ui/Tag.astro';
+
+interface Props {
+  post: Post;
+  /** Heading level, so the card fits the page's outline. */
+  as?: 'h2' | 'h3';
+  /** Hides tags and the description's second line. */
+  compact?: boolean;
+  class?: string;
+}
+
+const { post, as: Heading = 'h3', compact = false, class: className }: Props = Astro.props;
+
+const { data } = post;
+const href = `/blog/${post.id}`;
+const minutes = readingTimeFor(post);
+---
+
+<article class:list={['post-row group/post', className]} data-reveal>
+  <a href={href} class="post-link block py-7 sm:py-8">
+    <div class="grid gap-x-10 gap-y-3 lg:grid-cols-12">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 lg:col-span-3">
+        <time class="mono-label text-ink-3 whitespace-nowrap" datetime={isoDate(data.pubDate)}>
+          {formatDate(data.pubDate)}
+        </time>
+        <span class="mono-label text-ink-3" aria-hidden="true">·</span>
+        <span class="mono-label text-ink-3 whitespace-nowrap">
+          {formatReadingTime(minutes)}
+        </span>
+      </div>
+
+      <div class="lg:col-span-9">
+        <Heading class="post-title text-subheading text-ink sm:text-heading">
+          <span class="link-underline">{data.title}</span>
+          <Icon name="arrow-right" size={15} class="post-arrow ml-1 inline-block align-middle" />
+        </Heading>
+
+        <p class:list={['mt-2.5 text-meta text-ink-2 measure', compact && 'line-clamp-2']}>
+          {data.description}
+        </p>
+
+        {
+          !compact && data.tags.length > 0 && (
+            <ul class="mt-4 flex flex-wrap gap-1.5">
+              {data.tags.map((tag) => (
+                <li>
+                  <Tag>{tag}</Tag>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+
+        {
+          data.draft && (
+            <p class="mono-label mt-4 text-critical">Draft — hidden in production</p>
+          )
+        }
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  .post-row {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    transition: background-color 0.3s ease;
+  }
+
+  .post-row:hover {
+    background-color: var(--canvas-sunken);
+  }
+
+  .post-link {
+    padding-inline: 0.25rem;
+  }
+
+  .post-title {
+    transition: color 0.2s ease;
+  }
+
+  .post-row:hover .post-title {
+    color: var(--accent);
+  }
+
+  .post-arrow {
+    color: var(--ink-muted);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 0.3s var(--ease-out-quint),
+      transform 0.3s var(--ease-out-quint);
+  }
+
+  .post-row:hover .post-arrow,
+  .post-link:focus-visible .post-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+</style>

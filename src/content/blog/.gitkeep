@@ -1,0 +1,17 @@
+# Blog posts live here.
+#
+# This directory is intentionally empty — the site renders a designed empty
+# state until the first post lands. Create `my-post.md` alongside this file:
+#
+#   ---
+#   title: What I learned wiring OIDC into a GitHub Actions pipeline
+#   description: Short summary used in listings, meta tags, and social cards.
+#   pubDate: 2026-09-01
+#   tags: [devops, github-actions, security]
+#   featured: true
+#   ---
+#
+#   Your post body, in markdown.
+#
+# `readingTime` is computed automatically. Set `draft: true` to keep a post out
+# of production builds while still previewing it with `npm run dev`.

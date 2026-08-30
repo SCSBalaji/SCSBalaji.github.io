@@ -1,0 +1,110 @@
+---
+/**
+ * The blog's empty state.
+ *
+ * There are no posts yet, so this says so plainly rather than shipping filler
+ * articles. It renders in two sizes: `compact` for the homepage strip and the
+ * fuller version on /blog. Both disappear on their own the moment a real post
+ * lands in `src/content/blog/`.
+ */
+import { site } from '~/data/site';
+import ArrowLink from '~/components/ui/ArrowLink.astro';
+import Icon from '~/components/ui/Icon.astro';
+
+interface Props {
+  compact?: boolean;
+  /**
+   * Heading level for the headline. Defaults to the level that fits each call
+   * site: `h3` under the homepage section's own `h2`, `h2` under the /blog `h1`.
+   */
+  as?: 'h2' | 'h3';
+  class?: string;
+}
+
+const {
+  compact = false,
+  as: Heading = compact ? 'h3' : 'h2',
+  class: className,
+}: Props = Astro.props;
+
+// Keeps "On the list" exactly one level below the headline, whatever it is.
+const SubHeading = Heading === 'h2' ? 'h3' : 'h4';
+
+// What's actually queued up — honest intent, not a fake table of contents.
+const planned = [
+  'Notes on cloud cost visibility for small teams',
+  'Shrinking a vision model to fit a mid-range phone',
+  'Reading a GitOps pipeline end to end',
+];
+---
+
+<div
+  class:list={[
+    'empty-state relative overflow-hidden rounded-lg border border-line',
+    compact ? 'px-6 py-10 sm:px-10 sm:py-12' : 'px-6 py-14 sm:px-12 sm:py-20',
+    className,
+  ]}
+  data-reveal
+>
+  <div class="empty-texture grid-texture" aria-hidden="true"></div>
+
+  <div class="relative">
+    <p class="flex items-center gap-2.5">
+      <Icon name="clock" size={15} class="text-ink-3" />
+      <span class="mono-label text-ink-3">Nothing published yet</span>
+    </p>
+
+    <Heading
+      class:list={[
+        'mt-5 text-ink measure-tight',
+        compact ? 'text-subheading sm:text-heading' : 'text-heading sm:text-title',
+      ]}
+    >
+      The writing is in progress.
+    </Heading>
+
+    <p class="mt-4 text-body text-ink-2 measure">
+      I'd rather post one thing worth reading than five posts written to fill a
+      page. When a project teaches me something non-obvious, it ends up here.
+    </p>
+
+    {
+      !compact && (
+        <>
+          <SubHeading class="mono-label mt-10 text-ink-3">On the list</SubHeading>
+          <ul class="mt-5 border-t border-line">
+            {planned.map((topic, i) => (
+              <li class="flex items-baseline gap-4 border-b border-line py-3.5">
+                <span class="mono-meta text-ink-3 tabular-nums">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="text-meta text-ink-2">{topic}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )
+    }
+
+    <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
+      <ArrowLink href="/projects">Read the projects instead</ArrowLink>
+      <ArrowLink href={`mailto:${site.email}`} icon="mail" size="sm">
+        Suggest a topic
+      </ArrowLink>
+    </div>
+  </div>
+</div>
+
+<style>
+  .empty-state {
+    background-color: var(--canvas-sunken);
+  }
+
+  .empty-texture {
+    position: absolute;
+    inset: 0;
+    -webkit-mask-image: radial-gradient(90% 120% at 100% 0%, #000 0%, transparent 70%);
+    mask-image: radial-gradient(90% 120% at 100% 0%, #000 0%, transparent 70%);
+    pointer-events: none;
+  }
+</style>

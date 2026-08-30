@@ -1,0 +1,101 @@
+---
+import { site, nav } from '~/data/site';
+import { profiles } from '~/data/profiles';
+import Icon from './ui/Icon.astro';
+
+const year = new Date().getFullYear();
+
+// The footer carries the four most useful profiles; the full set lives in the
+// Profiles section on the homepage.
+const shortlist = profiles.slice(0, 4);
+---
+
+<footer class="border-t border-line">
+  <div class="shell py-16 sm:py-20">
+    <div class="grid gap-12 md:grid-cols-12 md:gap-10">
+      <div class="md:col-span-5">
+        <p class="text-heading text-ink">
+          <span class="text-ink-3">SCS</span> Balaji
+        </p>
+        <p class="mt-3 text-meta text-ink-2 measure-tight">
+          {site.role} working across cloud infrastructure, applied machine learning,
+          and the web.
+        </p>
+
+        <a
+          href={`mailto:${site.email}`}
+          class="mono-meta mt-6 inline-flex items-center gap-2 text-ink-2 transition-colors duration-200 hover:text-accent"
+        >
+          <Icon name="mail" size={15} />
+          <span class="link-underline">{site.email}</span>
+        </a>
+      </div>
+
+      <nav class="md:col-span-3 md:col-start-7" aria-labelledby="footer-explore">
+        <h2 id="footer-explore" class="mono-label text-ink-3">Explore</h2>
+        <ul class="mt-5 flex flex-col gap-3">
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={'href' in item ? item.href : `/#${item.hash}`}
+                  class="text-meta text-ink-2 transition-colors duration-200 hover:text-ink"
+                >
+                  <span class="link-underline">{item.label}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <nav class="md:col-span-3" aria-labelledby="footer-elsewhere">
+        <h2 id="footer-elsewhere" class="mono-label text-ink-3">Elsewhere</h2>
+        <ul class="mt-5 flex flex-col gap-3">
+          {
+            shortlist.map((profile) => (
+              <li>
+                <a
+                  href={profile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="group/foot inline-flex items-center gap-1.5 text-meta text-ink-2 transition-colors duration-200 hover:text-ink"
+                >
+                  <span class="link-underline">{profile.platform}</span>
+                  <Icon
+                    name="arrow-up-right"
+                    size={13}
+                    class="text-ink-3 transition-transform duration-300 ease-[var(--ease-out-quint)] group-hover/foot:translate-x-0.5 group-hover/foot:-translate-y-0.5"
+                  />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+
+    <div
+      class="mt-16 flex flex-col gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p class="mono-meta text-ink-3">
+        © {year} {site.name} · Built with Astro
+      </p>
+
+      <div class="flex items-center gap-6">
+        <p class="mono-meta text-ink-3 hidden sm:block">{site.timezone}</p>
+        <a
+          href="#main"
+          class="group/top mono-meta inline-flex items-center gap-1.5 text-ink-3 transition-colors duration-200 hover:text-ink"
+        >
+          Back to top
+          <Icon
+            name="arrow-down"
+            size={13}
+            class="rotate-180 transition-transform duration-300 ease-[var(--ease-out-quint)] group-hover/top:-translate-y-0.5"
+          />
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>

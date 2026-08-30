@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="B">
+  <!--
+    Monogram drawn as strokes so it holds its weight at 16px. No background
+    plate: the accent reads on light and dark browser chrome alike, and the
+    media query swaps to the dark-theme accent where it is supported.
+  -->
+  <style>
+    .mark {
+      stroke: #b4530a;
+    }
+    @media (prefers-color-scheme: dark) {
+      .mark {
+        stroke: #f0a05a;
+      }
+    }
+  </style>
+  <g class="mark" fill="none" stroke-width="4.4" stroke-linejoin="round">
+    <path d="M8.2 4.7V27.3" />
+    <path d="M8.2 4.7H17a5.65 5.65 0 0 1 0 11.3H8.2" />
+    <path d="M8.2 16H18.1a5.65 5.65 0 0 1 0 11.3H8.2" />
+  </g>
+</svg>

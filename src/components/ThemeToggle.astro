@@ -1,0 +1,59 @@
+---
+/**
+ * Light/dark toggle. The `.dark` class is set before first paint by the inline
+ * script in BaseLayout — this only handles the click and keeps every instance
+ * of the button in sync.
+ */
+import Icon from './ui/Icon.astro';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  aria-pressed="false"
+  aria-label="Switch to dark theme"
+  class:list={['icon-button', className]}
+>
+  <Icon name="moon" size={16} class="dark:hidden" />
+  <Icon name="sun" size={16} class="hidden dark:block" />
+</button>
+
+<script>
+  const root = document.documentElement;
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]');
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function sync() {
+    const isDark = root.classList.contains('dark');
+    for (const button of buttons) {
+      button.setAttribute('aria-pressed', String(isDark));
+      button.setAttribute(
+        'aria-label',
+        isDark ? 'Switch to light theme' : 'Switch to dark theme',
+      );
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const isDark = root.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      sync();
+    });
+  }
+
+  // Follow the OS only while the visitor hasn't made an explicit choice.
+  media.addEventListener('change', (event) => {
+    if (localStorage.getItem('theme')) return;
+    root.classList.toggle('dark', event.matches);
+    sync();
+  });
+
+  sync();
+</script>

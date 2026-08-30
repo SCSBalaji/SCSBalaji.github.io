@@ -1,0 +1,91 @@
+---
+/**
+ * The only button in the system. Renders an `<a>` when given `href`, a
+ * `<button>` otherwise — so links stay links and buttons stay buttons.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import type { IconName } from '~/lib/icons';
+import Icon from './Icon.astro';
+
+interface Props extends Omit<HTMLAttributes<'button'>, 'type'> {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md';
+  /** Present → renders an anchor. */
+  href?: string;
+  /** Adds target/rel and a trailing arrow unless `iconRight` is set. */
+  external?: boolean;
+  download?: boolean | string;
+  type?: 'button' | 'submit' | 'reset';
+  iconLeft?: IconName;
+  iconRight?: IconName;
+}
+
+const {
+  variant = 'secondary',
+  size = 'md',
+  href,
+  external = false,
+  download,
+  type = 'button',
+  iconLeft,
+  iconRight,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const base = [
+  'group/btn inline-flex items-center justify-center gap-2 rounded-md',
+  'font-medium whitespace-nowrap select-none',
+  'transition-[background-color,border-color,color,transform] duration-200 ease-[var(--ease-out-quint)]',
+  'active:translate-y-px',
+  'disabled:pointer-events-none disabled:opacity-50',
+];
+
+const variants = {
+  primary:
+    'bg-accent text-on-accent border border-transparent hover:bg-accent-hover shadow-subtle',
+  secondary:
+    'border border-line bg-raised text-ink hover:border-line-strong hover:bg-sunken',
+  ghost: 'border border-transparent text-ink-2 hover:text-ink hover:bg-sunken',
+} as const;
+
+const sizes = {
+  sm: 'h-8 px-3 text-[0.8125rem]',
+  md: 'h-10 px-4 text-[0.9375rem]',
+} as const;
+
+const classes = [...base, variants[variant], sizes[size], className];
+const trailing = iconRight ?? (external ? 'arrow-up-right' : undefined);
+
+// Widened so the same rest-props object can be spread onto either element.
+const attrs = rest as Record<string, unknown>;
+---
+
+{
+  href ? (
+    <a
+      href={href}
+      download={download}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      class:list={classes}
+      {...attrs}
+    >
+      {iconLeft && <Icon name={iconLeft} size={15} />}
+      <slot />
+      {trailing && (
+        <Icon
+          name={trailing}
+          size={15}
+          class="transition-transform duration-200 ease-[var(--ease-out-quint)] group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"
+        />
+      )}
+    </a>
+  ) : (
+    <button type={type} class:list={classes} {...attrs}>
+      {iconLeft && <Icon name={iconLeft} size={15} />}
+      <slot />
+      {trailing && <Icon name={trailing} size={15} />}
+    </button>
+  )
+}

@@ -1,0 +1,209 @@
+---
+/**
+ * One project, two shapes.
+ *
+ * `spotlight` is the asymmetric homepage treatment — big visual, offset text
+ * column, alternating side. `compact` is the grid cell used on /projects.
+ * Both read from the same collection entry, so adding a project is a matter of
+ * dropping in a markdown file and nothing else.
+ */
+import { Image } from 'astro:assets';
+import { PROJECT_CATEGORIES } from '~/content.config';
+import type { Project } from '~/lib/content';
+import { stableIndex } from '~/lib/format';
+import ProjectVisual from './ProjectVisual.astro';
+import Icon from './ui/Icon.astro';
+import StatusDot from './ui/StatusDot.astro';
+import Tag from './ui/Tag.astro';
+
+interface Props {
+  project: Project;
+  variant?: 'spotlight' | 'compact';
+  /** Spotlight only — mirrors the layout so successive cards alternate. */
+  reverse?: boolean;
+  /** Running number shown beside the category, e.g. "01". */
+  index?: string;
+  /** Heading level, so the card fits whatever outline the page has. */
+  as?: 'h2' | 'h3';
+  class?: string;
+}
+
+const {
+  project,
+  variant = 'compact',
+  reverse = false,
+  index,
+  as: Heading = 'h3',
+  class: className,
+}: Props = Astro.props;
+
+const { data } = project;
+const spotlight = variant === 'spotlight';
+
+// A live demo is the more interesting destination; source is the fallback.
+const primary = data.demo ?? data.github;
+const Frame = primary ? 'a' : 'div';
+const frameProps = primary
+  ? ({
+      href: primary,
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      // Redundant click target — the title link already covers this in tab order.
+      tabindex: '-1',
+      'aria-hidden': 'true',
+    } as const)
+  : {};
+
+const visual = data.visual ?? stableIndex(data.title, 6) + 1;
+const shown = spotlight ? data.technologies : data.technologies.slice(0, 4);
+const overflow = data.technologies.length - shown.length;
+---
+
+<article
+  class:list={[
+    'project-card group/card',
+    spotlight
+      ? 'grid items-center gap-8 lg:grid-cols-12 lg:gap-x-14'
+      : 'flex flex-col',
+    className,
+  ]}
+  data-reveal
+>
+  <Frame
+    class:list={[
+      'block overflow-hidden rounded-md border border-line',
+      'transition-colors duration-300 group-hover/card:border-line-strong',
+      spotlight
+        ? reverse
+          ? 'lg:col-span-7 lg:col-start-6'
+          : 'lg:col-span-7'
+        : 'w-full',
+    ]}
+    {...frameProps}
+  >
+    <div class="aspect-16/10 w-full">
+      {
+        data.image ? (
+          <Image
+            src={data.image}
+            alt={data.imageAlt ?? `${data.title} — ${data.tagline}`}
+            widths={[480, 800, 1200]}
+            sizes={
+              spotlight
+                ? '(min-width: 1024px) 58vw, 100vw'
+                : '(min-width: 768px) 45vw, 100vw'
+            }
+            class="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-out-quint)] group-hover/card:scale-[1.025]"
+          />
+        ) : (
+          <ProjectVisual variant={visual} class="h-full w-full" />
+        )
+      }
+    </div>
+  </Frame>
+
+  <div
+    class:list={[
+      spotlight
+        ? reverse
+          ? 'lg:col-span-5 lg:col-start-1 lg:row-start-1'
+          : 'lg:col-span-5 lg:col-start-8'
+        : 'mt-6',
+    ]}
+  >
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      {index && <span class="mono-label text-ink-3">{index}</span>}
+      <span class="mono-label text-ink-3">{PROJECT_CATEGORIES[data.category]}</span>
+      <StatusDot status={data.status} />
+    </div>
+
+    <Heading class:list={['mt-4 text-ink', spotlight ? 'text-heading sm:text-[1.5rem] sm:leading-[1.24] sm:tracking-[-0.022em]' : 'text-heading']}>
+      {
+        primary ? (
+          <a href={primary} target="_blank" rel="noopener noreferrer" class="card-title">
+            <span class="link-underline">{data.title}</span>
+          </a>
+        ) : (
+          data.title
+        )
+      }
+    </Heading>
+
+    <p class:list={['mt-3', spotlight ? 'text-lead text-ink measure' : 'text-meta text-ink-2']}>
+      {data.tagline}
+    </p>
+
+    {
+      spotlight && (
+        <p class="mt-4 text-body text-ink-2 measure">{data.description}</p>
+      )
+    }
+
+    <ul class="mt-6 flex flex-wrap gap-1.5" aria-label="Built with">
+      {shown.map((tech) => <li><Tag>{tech}</Tag></li>)}
+      {
+        overflow > 0 && (
+          <li>
+            <Tag variant="plain" class="px-1.5 text-ink-3">+{overflow}</Tag>
+          </li>
+        )
+      }
+    </ul>
+
+    <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+      {
+        data.github && (
+          <a href={data.github} target="_blank" rel="noopener noreferrer" class="card-link">
+            <span class="link-underline">Source</span>
+            <Icon name="arrow-up-right" size={14} class="card-arrow" />
+          </a>
+        )
+      }
+      {
+        data.demo && (
+          <a href={data.demo} target="_blank" rel="noopener noreferrer" class="card-link">
+            <span class="link-underline">Live demo</span>
+            <Icon name="arrow-up-right" size={14} class="card-arrow" />
+          </a>
+        )
+      }
+    </div>
+  </div>
+</article>
+
+<style>
+  .card-title {
+    color: var(--ink);
+    transition: color 0.2s ease;
+  }
+
+  .card-title:hover {
+    color: var(--accent);
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink-secondary);
+    transition: color 0.2s ease;
+  }
+
+  .card-link:hover {
+    color: var(--accent);
+  }
+
+  .card-arrow {
+    color: var(--ink-muted);
+    transition:
+      transform 0.3s var(--ease-out-quint),
+      color 0.2s ease;
+  }
+
+  .card-link:hover .card-arrow {
+    color: inherit;
+    transform: translate(1px, -1px);
+  }
+</style>

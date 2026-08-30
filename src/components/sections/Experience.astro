@@ -1,0 +1,162 @@
+---
+/**
+ * Experience as a vertical timeline. One rail, one node per role, dates in the
+ * left column on wide screens and inline on narrow ones. Adding a role means
+ * prepending to `src/data/experience.ts` and nothing else.
+ */
+import { experience } from '~/data/experience';
+import { formatRange } from '~/lib/format';
+import Section from '~/components/ui/Section.astro';
+import Tag from '~/components/ui/Tag.astro';
+---
+
+<Section
+  id="experience"
+  index="03"
+  label="Experience"
+  title="Where I've worked"
+  intro="Internships and community work, most recent first — the places I learned how software behaves once other people depend on it."
+>
+  <ol class="timeline">
+    {
+      experience.map((role, i) => {
+        const current = role.end === null;
+
+        return (
+          <li class="timeline-item" data-reveal style={`--reveal-delay: ${i * 70}ms`}>
+            <span
+              class="timeline-node"
+              data-current={current ? '' : undefined}
+              aria-hidden="true"
+            />
+
+            <div class="grid gap-x-10 gap-y-3 lg:grid-cols-12">
+              <div class="lg:col-span-3">
+                <p class="mono-label text-ink-3 whitespace-nowrap">
+                  {formatRange(role.start, role.end)}
+                </p>
+                {current && (
+                  <p class="mono-label mt-2 text-accent">Current</p>
+                )}
+              </div>
+
+              <div class="lg:col-span-9">
+                <h3 class="text-heading text-ink">{role.role}</h3>
+
+                <p class="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-meta text-ink-2">
+                  <span class="font-medium text-ink">{role.organization}</span>
+                  {role.location && (
+                    <>
+                      <span class="text-ink-3" aria-hidden="true">
+                        ·
+                      </span>
+                      <span>{role.location}</span>
+                    </>
+                  )}
+                  {role.type && (
+                    <>
+                      <span class="text-ink-3" aria-hidden="true">
+                        ·
+                      </span>
+                      <span>{role.type}</span>
+                    </>
+                  )}
+                </p>
+
+                <p class="mt-4 text-body text-ink-2 measure">{role.summary}</p>
+
+                {role.points && role.points.length > 0 && (
+                  <ul class="mt-4 flex flex-col gap-2.5">
+                    {role.points.map((point) => (
+                      <li class="point text-meta text-ink-2 measure">{point}</li>
+                    ))}
+                  </ul>
+                )}
+
+                {role.technologies && role.technologies.length > 0 && (
+                  <ul class="mt-5 flex flex-wrap gap-1.5" aria-label="Technologies used">
+                    {role.technologies.map((tech) => (
+                      <li>
+                        <Tag>{tech}</Tag>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+</Section>
+
+<style>
+  .timeline {
+    position: relative;
+    padding-inline-start: 1.75rem;
+  }
+
+  /* The rail. Starts at the first node and ends with the last entry, rather than
+     running on into empty space. */
+  .timeline::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 3px;
+    inset-block: 0.6rem 0;
+    inline-size: 1px;
+    background-color: var(--line);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-block-end: 3.5rem;
+  }
+
+  .timeline-item:last-child {
+    padding-block-end: 0;
+  }
+
+  .timeline-node {
+    position: absolute;
+    inset-inline-start: -1.75rem;
+    inset-block-start: 0.45rem;
+    z-index: 1;
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 9999px;
+    background-color: var(--line-strong);
+  }
+
+  .timeline-node[data-current] {
+    background-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-wash);
+  }
+
+  /* Hairline dash instead of a bullet glyph. */
+  .point {
+    position: relative;
+    padding-inline-start: 1.125rem;
+  }
+
+  .point::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.72em;
+    inline-size: 0.5rem;
+    block-size: 1px;
+    background-color: var(--line-strong);
+  }
+
+  @media (min-width: 1024px) {
+    .timeline {
+      padding-inline-start: 2.25rem;
+    }
+
+    .timeline-node {
+      inset-inline-start: -2.25rem;
+      inset-block-start: 0.3rem;
+    }
+  }
+</style>

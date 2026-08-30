@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  # Every push to main rebuilds and publishes the site.
+  push:
+    branches: [main]
+  # Lets you re-run a deploy by hand from the Actions tab (no commit needed).
+  workflow_dispatch:
+
+# Least-privilege token: read the repo, publish a Pages deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# If you push twice in a row, cancel the in-flight run and deploy the newer commit.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout your repository using git
+        uses: actions/checkout@v7
+
+      - name: Install, build, and upload your site
+        uses: withastro/action@v6
+        # Package manager (npm) and Node version are detected automatically
+        # from package-lock.json. `npm run build` is the default build command,
+        # which here runs `astro check && astro build` — a type error fails the
+        # deploy on purpose rather than shipping a broken page.
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

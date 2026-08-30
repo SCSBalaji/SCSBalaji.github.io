@@ -1,0 +1,69 @@
+---
+/**
+ * 404. Excluded from the sitemap (see astro.config.mjs) and marked noindex,
+ * so it can be genuinely useful rather than SEO-shaped.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ArrowLink from '~/components/ui/ArrowLink.astro';
+import PageHeader from '~/components/ui/PageHeader.astro';
+import { site } from '~/data/site';
+
+const destinations = [
+  { label: 'Home', href: '/', detail: 'The whole story on one page.' },
+  { label: 'Projects', href: '/projects', detail: 'Everything built and shipped.' },
+  { label: 'Writing', href: '/blog', detail: 'Notes from the work.' },
+  { label: 'Contact', href: '/#contact', detail: 'Say hello.' },
+];
+---
+
+<BaseLayout
+  title="Page not found"
+  description="That page doesn't exist."
+  noindex
+>
+  <PageHeader
+    label="404"
+    title="This page doesn't exist"
+    intro="The link may be out of date, or I may have moved something. Either way, one of these should get you where you were going."
+  />
+
+  <div class="shell py-16 sm:py-20">
+    <div class="grid gap-x-10 gap-y-12 lg:grid-cols-12">
+      <ul class="border-t border-line lg:col-span-7">
+        {
+          destinations.map((destination) => (
+            <li class="border-b border-line">
+              <a href={destination.href} class="destination flex items-baseline gap-x-6 py-5">
+                <span class="destination-label text-subheading text-ink">
+                  {destination.label}
+                </span>
+                <span class="mono-meta text-ink-3">{destination.detail}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="lg:col-span-4 lg:col-start-9">
+        <h2 class="mono-label text-ink-3">Something broken?</h2>
+        <p class="mt-4 text-body text-ink-2 measure-tight">
+          If you followed a link here from somewhere on this site, I'd like to know about it.
+        </p>
+        <ArrowLink href={`mailto:${site.email}`} class="mt-5">
+          {site.email}
+        </ArrowLink>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .destination-label {
+    transition: color 0.2s ease;
+  }
+
+  .destination:hover .destination-label,
+  .destination:focus-visible .destination-label {
+    color: var(--accent);
+  }
+</style>

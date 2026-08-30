@@ -1,0 +1,80 @@
+---
+/**
+ * Every homepage section runs through here: consistent vertical rhythm, a
+ * hairline divider, and an asymmetric header (title left, intro offset right).
+ */
+import Eyebrow from './Eyebrow.astro';
+
+interface Props {
+  id: string;
+  index?: string;
+  label: string;
+  title: string;
+  intro?: string;
+  /** Hairline rule along the top edge. On by default. */
+  divider?: boolean;
+  tone?: 'canvas' | 'sunken';
+  /** Set false for sections that supply their own header markup. */
+  header?: boolean;
+  class?: string;
+  /** Extra classes on the inner content wrapper. */
+  bodyClass?: string;
+}
+
+const {
+  id,
+  index,
+  label,
+  title,
+  intro,
+  divider = true,
+  tone = 'canvas',
+  header = true,
+  class: className,
+  bodyClass,
+} = Astro.props;
+
+const hasAction = Astro.slots.has('action');
+const hasSide = Boolean(intro) || hasAction;
+---
+
+<section
+  id={id}
+  aria-labelledby={`${id}-title`}
+  class:list={[
+    'py-section',
+    tone === 'sunken' && 'bg-sunken',
+    divider && 'border-t border-line',
+    className,
+  ]}
+>
+  <div class="shell">
+    {
+      header && (
+        <header class="grid gap-x-10 gap-y-6 lg:grid-cols-12" data-reveal>
+          <div class="lg:col-span-6">
+            <Eyebrow index={index} label={label} />
+            <h2 id={`${id}-title`} class="mt-5 text-title text-ink">
+              {title}
+            </h2>
+          </div>
+
+          {hasSide && (
+            <div class="lg:col-span-5 lg:col-start-8 lg:pt-12">
+              {intro && <p class="text-lead text-ink-2 measure">{intro}</p>}
+              {hasAction && (
+                <div class:list={['flex flex-wrap items-center gap-5', intro && 'mt-6']}>
+                  <slot name="action" />
+                </div>
+              )}
+            </div>
+          )}
+        </header>
+      )
+    }
+
+    <div class:list={[header && 'mt-16 sm:mt-20', bodyClass]}>
+      <slot />
+    </div>
+  </div>
+</section>

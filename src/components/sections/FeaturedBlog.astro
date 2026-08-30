@@ -1,0 +1,46 @@
+---
+/**
+ * Featured writing. Shows up to three posts, or the empty state while there are
+ * none — the section itself never disappears, so the page structure is stable
+ * whether or not the blog has anything in it yet.
+ */
+import { getFeaturedPosts, getPosts } from '~/lib/content';
+import BlogEmptyState from '~/components/blog/BlogEmptyState.astro';
+import PostCard from '~/components/blog/PostCard.astro';
+import ArrowLink from '~/components/ui/ArrowLink.astro';
+import Section from '~/components/ui/Section.astro';
+
+const posts = await getFeaturedPosts(3);
+const total = (await getPosts()).length;
+const hasPosts = posts.length > 0;
+---
+
+<Section
+  id="writing"
+  index="06"
+  label="Writing"
+  title="Notes from the work"
+  intro={
+    hasPosts
+      ? 'Occasional write-ups on the problems that took longer than expected to solve.'
+      : undefined
+  }
+>
+  {hasPosts && total > posts.length && (
+    <ArrowLink slot="action" href="/blog">
+      All {total} posts
+    </ArrowLink>
+  )}
+
+  {
+    hasPosts ? (
+      <div class="border-t border-line">
+        {posts.map((post) => (
+          <PostCard post={post} compact />
+        ))}
+      </div>
+    ) : (
+      <BlogEmptyState compact />
+    )
+  }
+</Section>

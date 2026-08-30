@@ -1,0 +1,111 @@
+---
+/**
+ * Skills as a ledger, not a badge wall.
+ *
+ * One row per practice: mono index, group name, a line on how the work actually
+ * happens, and every technology spelled out. Hover warms the row — an accent
+ * rule slides down the edge, the label picks up the accent, the hairlines
+ * between technologies firm up — but nothing is hidden behind that interaction,
+ * so the list reads identically untouched, on touch devices, and to screen
+ * readers. Rows aren't focusable because there's nothing to activate.
+ *
+ * No percentages, no star ratings, no invented proficiency levels.
+ */
+import { skillGroups } from '~/data/skills';
+import Section from '~/components/ui/Section.astro';
+---
+
+<Section
+  id="skills"
+  index="02"
+  label="Capabilities"
+  title="What I work with"
+  intro="Grouped by practice rather than ranked by confidence. A number next to a logo tells you nothing, so I've written what I actually do with each group instead."
+>
+  <ul class="border-t border-line">
+    {
+      skillGroups.map((group, i) => (
+        <li class="skill-row" data-reveal style={`--reveal-delay: ${i * 60}ms`}>
+          <span class="skill-rule" aria-hidden="true"></span>
+
+          <div class="grid gap-x-10 gap-y-4 py-7 sm:py-8 lg:grid-cols-12">
+            <div class="flex items-baseline gap-4 lg:col-span-4">
+              <span class="mono-meta text-ink-3 tabular-nums">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 class="skill-label text-subheading sm:text-heading">{group.label}</h3>
+            </div>
+
+            <div class="lg:col-span-8">
+              <p class="text-meta text-ink-2 measure">{group.summary}</p>
+
+              <ul class="mt-4 flex flex-wrap gap-x-3 gap-y-2">
+                {group.items.map((item) => (
+                  <li class="skill-item mono-meta">{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</Section>
+
+<style>
+  .skill-row {
+    position: relative;
+    /* Static inset so the accent rule has room without shifting the text. */
+    padding-inline-start: 1.25rem;
+    border-bottom: 1px solid var(--line);
+    transition: background-color 0.3s ease;
+  }
+
+  .skill-row:hover {
+    background-color: var(--canvas-sunken);
+  }
+
+  .skill-rule {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 2px;
+    background-color: var(--accent);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.45s var(--ease-out-quint);
+  }
+
+  .skill-row:hover .skill-rule {
+    transform: scaleY(1);
+  }
+
+  .skill-label {
+    color: var(--ink);
+    transition: color 0.25s ease;
+  }
+
+  .skill-row:hover .skill-label {
+    color: var(--accent);
+  }
+
+  /* Technology names: mono, hairline-separated, always legible. */
+  .skill-item {
+    color: var(--ink-secondary);
+    padding-inline-end: 0.75rem;
+    border-inline-end: 1px solid var(--line);
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .skill-item:last-child {
+    padding-inline-end: 0;
+    border-inline-end: 0;
+  }
+
+  .skill-row:hover .skill-item {
+    color: var(--ink);
+    border-color: var(--line-strong);
+  }
+</style>

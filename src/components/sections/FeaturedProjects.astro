@@ -1,0 +1,38 @@
+---
+/**
+ * Selected work. Three starred projects in the spotlight treatment, alternating
+ * sides. Which three is decided by `featured: true` in the project frontmatter,
+ * never here.
+ */
+import { getFeaturedProjects } from '~/lib/content';
+import ProjectCard from '~/components/ProjectCard.astro';
+import ArrowLink from '~/components/ui/ArrowLink.astro';
+import Section from '~/components/ui/Section.astro';
+
+const featured = await getFeaturedProjects(3);
+---
+
+<Section
+  id="work"
+  index="01"
+  label="Selected work"
+  title="The work I'd point at first"
+  intro="Each of these began as a problem I ran into myself, got built end to end, and is running somewhere today. Source is open for all of them."
+>
+  <ArrowLink slot="action" href="/projects">All projects</ArrowLink>
+
+  <div class="flex flex-col">
+    {
+      featured.map((project, i) => (
+        <div class:list={[i > 0 && 'mt-20 border-t border-line pt-20 sm:mt-24 sm:pt-24']}>
+          <ProjectCard
+            project={project}
+            variant="spotlight"
+            reverse={i % 2 === 1}
+            index={String(i + 1).padStart(2, '0')}
+          />
+        </div>
+      ))
+    }
+  </div>
+</Section>

@@ -1,0 +1,47 @@
+---
+/**
+ * Dot + text status marker. The label always renders, so meaning never depends
+ * on the dot's colour alone.
+ */
+import { PROJECT_STATUSES, type ProjectStatus } from '~/content.config';
+
+interface Props {
+  /** Project status — resolves both the label and the tone. */
+  status?: ProjectStatus;
+  /** Override the label (required when `status` is omitted). */
+  label?: string;
+  tone?: 'positive' | 'accent' | 'muted';
+  class?: string;
+}
+
+const { status, label, tone, class: className } = Astro.props;
+
+const STATUS_TONE: Record<ProjectStatus, 'positive' | 'accent' | 'muted'> = {
+  live: 'positive',
+  'in-development': 'accent',
+  complete: 'muted',
+  archived: 'muted',
+};
+
+const resolvedLabel = label ?? (status ? PROJECT_STATUSES[status] : '');
+const resolvedTone = tone ?? (status ? STATUS_TONE[status] : 'muted');
+const hollow = status === 'archived';
+
+const DOT_TONE = {
+  positive: 'bg-positive',
+  accent: 'bg-accent',
+  muted: 'bg-ink-3',
+} as const;
+---
+
+<span class:list={['inline-flex items-center gap-2 mono-label text-ink-2', className]}>
+  <span
+    class:list={[
+      'size-[0.3125rem] rounded-full',
+      hollow
+        ? 'bg-transparent ring-1 ring-ink-3'
+        : [DOT_TONE[resolvedTone], resolvedTone !== 'muted' && 'animate-status'],
+    ]}
+    aria-hidden="true"></span>
+  {resolvedLabel}
+</span>

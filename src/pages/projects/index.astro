@@ -1,0 +1,171 @@
+---
+/**
+ * Every project. Filtering is client-side over already-rendered cards — no
+ * extra routes, no re-fetch, and the full list is in the HTML for crawlers and
+ * for anyone without JavaScript (the filter bar hides itself if the script
+ * never runs).
+ */
+import { PROJECT_CATEGORIES } from '~/content.config';
+import { getProjects, getUsedCategories } from '~/lib/content';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ProjectCard from '~/components/ProjectCard.astro';
+import PageHeader from '~/components/ui/PageHeader.astro';
+import { absoluteUrl, breadcrumbSchema } from '~/lib/seo';
+
+const projects = await getProjects();
+const categories = getUsedCategories(projects);
+
+const filters = [
+  { id: 'all', label: 'All', count: projects.length },
+  ...categories.map((id) => ({
+    id,
+    label: PROJECT_CATEGORIES[id],
+    count: projects.filter((p) => p.data.category === id).length,
+  })),
+];
+
+const schema = [
+  breadcrumbSchema([
+    { name: 'Home', url: absoluteUrl('/') },
+    { name: 'Projects', url: absoluteUrl('/projects') },
+  ]),
+];
+---
+
+<BaseLayout
+  title="Projects"
+  description={`Everything ${projects.length > 0 ? `— ${projects.length} projects ` : ''}across cloud infrastructure, applied machine learning, DevOps tooling, and the web, built by SCS Balaji.`}
+  schema={schema}
+>
+  <PageHeader
+    label="Projects"
+    title="Everything I've built and shipped"
+    intro="Side projects, tools, and experiments — the ones still running and the ones I've retired. Source is public for all of them."
+  />
+
+  <div class="shell py-16 sm:py-20">
+    {
+      filters.length > 1 && (
+        <div id="project-filters" class="filter-bar flex flex-wrap items-center gap-2" hidden>
+          <h2 class="sr-only">Filter projects by category</h2>
+          {filters.map((filter) => (
+            <button
+              type="button"
+              class="filter-chip"
+              data-filter={filter.id}
+              data-active={filter.id === 'all' ? '' : undefined}
+              aria-pressed={filter.id === 'all' ? 'true' : 'false'}
+            >
+              {filter.label}
+              <span class="filter-count">{filter.count}</span>
+            </button>
+          ))}
+        </div>
+      )
+    }
+
+    <p id="filter-summary" role="status" aria-live="polite" class="sr-only"></p>
+
+    <ul
+      id="project-grid"
+      class="mt-10 grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:gap-y-20"
+    >
+      {
+        projects.map((project) => (
+          <li data-category={project.data.category}>
+            <ProjectCard project={project} as="h3" />
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      projects.length === 0 && (
+        <p class="text-lead text-ink-2">No projects published yet.</p>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2rem;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background-color: var(--canvas);
+    color: var(--ink-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .filter-chip:hover {
+    border-color: var(--line-strong);
+    color: var(--ink);
+  }
+
+  .filter-chip[data-active] {
+    border-color: var(--accent);
+    background-color: var(--accent-wash);
+    color: var(--accent);
+  }
+
+  .filter-count {
+    font-family: var(--font-code), ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .filter-chip[data-active] .filter-count {
+    color: var(--accent);
+  }
+</style>
+
+<script>
+  const bar = document.getElementById('project-filters');
+  const grid = document.getElementById('project-grid');
+  const summary = document.getElementById('filter-summary');
+
+  if (bar && grid) {
+    // Only offer filtering once we know the script is running.
+    bar.hidden = false;
+
+    const chips = [...bar.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const items = [...grid.querySelectorAll<HTMLElement>('[data-category]')];
+
+    const apply = (active: string) => {
+      let shown = 0;
+
+      for (const item of items) {
+        const match = active === 'all' || item.dataset.category === active;
+        item.hidden = !match;
+        if (match) shown += 1;
+      }
+
+      for (const chip of chips) {
+        const isActive = chip.dataset.filter === active;
+        chip.toggleAttribute('data-active', isActive);
+        chip.setAttribute('aria-pressed', String(isActive));
+      }
+
+      if (summary) {
+        const label = chips.find((c) => c.dataset.filter === active)?.textContent?.trim();
+        summary.textContent = `Showing ${shown} ${shown === 1 ? 'project' : 'projects'}${
+          active === 'all' ? '' : ` in ${label?.replace(/\s*\d+$/, '')}`
+        }.`;
+      }
+    };
+
+    for (const chip of chips) {
+      chip.addEventListener('click', () => apply(chip.dataset.filter ?? 'all'));
+    }
+  }
+</script>

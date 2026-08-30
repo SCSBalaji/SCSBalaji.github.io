@@ -1,0 +1,180 @@
+---
+/**
+ * The document shell: fonts, theme bootstrap, SEO, structured data, and the
+ * scroll-reveal observer. Every page renders through here.
+ */
+import { Font } from 'astro:assets';
+import { site } from '~/data/site';
+import { absoluteUrl, buildTitle, personSchema, websiteSchema } from '~/lib/seo';
+import Nav from '~/components/Nav.astro';
+import Footer from '~/components/Footer.astro';
+import '~/styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Use the title verbatim, skipping the "· SCS Balaji" suffix. */
+  exactTitle?: boolean;
+  /** Absolute or root-relative social image. */
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  /** Extra JSON-LD objects appended after Person and WebSite. */
+  schema?: unknown[];
+  mainClass?: string;
+}
+
+const {
+  title,
+  description = site.seo.description,
+  exactTitle = false,
+  image = site.seo.ogImage,
+  imageAlt,
+  type = 'website',
+  noindex = false,
+  schema = [],
+  mainClass,
+} = Astro.props;
+
+const base = Astro.site ?? new URL(site.url);
+const canonical = absoluteUrl(Astro.url.pathname, base);
+const pageTitle = buildTitle(title, exactTitle);
+const socialImage = absoluteUrl(image, base);
+
+const structuredData = [personSchema(), websiteSchema(), ...schema];
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content={site.seo.locale} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:alt" content={imageAlt ?? `${site.name} — ${site.role}`} />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    {site.seo.twitter && <meta name="twitter:creator" content={site.seo.twitter} />}
+
+    <Font cssVariable="--font-grotesk" preload />
+    <Font cssVariable="--font-code" />
+
+    {
+      structuredData.map((entry) => (
+        <script
+          type="application/ld+json"
+          is:inline
+          set:html={JSON.stringify(entry)}
+        />
+      ))
+    }
+
+    <!--
+      Runs before first paint so the theme never flashes. Also marks the document
+      as scripted, which is what un-hides the scroll-reveal elements.
+    -->
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        root.classList.add('js');
+
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let stored = null;
+
+        try {
+          stored = localStorage.getItem('theme');
+        } catch {
+          /* Storage blocked — fall back to the OS preference. */
+        }
+
+        root.classList.toggle('dark', stored ? stored === 'dark' : prefersDark);
+      })();
+    </script>
+  </head>
+
+  <body class="min-h-dvh">
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    <Nav />
+
+    <main id="main" class:list={mainClass}>
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script>
+      /* Reveal-on-scroll. The hidden state lives behind `.js` in global.css, so
+         a failed script leaves everything visible rather than blank. */
+      const items = document.querySelectorAll<HTMLElement>('[data-reveal]');
+
+      if (items.length > 0) {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (reduced) {
+          for (const item of items) item.classList.add('is-revealed');
+        } else {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                entry.target.classList.add('is-revealed');
+                observer.unobserve(entry.target);
+              }
+            },
+            { rootMargin: '0px 0px -8% 0px', threshold: 0.05 },
+          );
+
+          for (const item of items) observer.observe(item);
+        }
+      }
+    </script>
+
+    <style is:global>
+      .skip-link {
+        position: fixed;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 100;
+        padding: 0.55rem 0.9rem;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-md);
+        background-color: var(--canvas-raised);
+        color: var(--ink);
+        font-size: 0.875rem;
+        font-weight: 500;
+        box-shadow: var(--shadow-lift);
+        transform: translateY(calc(-100% - 1rem));
+        transition: transform 0.2s var(--ease-out-quint);
+      }
+
+      .skip-link:focus-visible {
+        transform: translateY(0);
+      }
+    </style>
+  </body>
+</html>

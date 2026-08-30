@@ -1,0 +1,298 @@
+---
+/**
+ * Sticky header. One nav list, rendered twice (desktop row + mobile panel) from
+ * the same `nav` config so the two can't drift apart.
+ *
+ * Active state is carried by a single `data-active` attribute — set at build
+ * time for route matches, set by the observer for homepage sections — so the
+ * styling has exactly one thing to key off. `aria-current` is kept alongside it
+ * for assistive tech.
+ */
+import { site, nav } from '~/data/site';
+import Button from './ui/Button.astro';
+import Icon from './ui/Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isHome = pathname === '/';
+
+const items = nav.map((item) => {
+  const href = 'href' in item ? item.href : `${isHome ? '' : '/'}#${item.hash}`;
+  const isPage =
+    'href' in item && (pathname === item.href || pathname.startsWith(`${item.href}/`));
+
+  // On the homepage the observer decides what's active; elsewhere the route does.
+  const watch = [
+    ...('hash' in item ? [item.hash] : []),
+    ...('sections' in item ? item.sections : []),
+  ];
+
+  return {
+    label: item.label,
+    href,
+    isPage,
+    watch: isHome && watch.length > 0 ? watch.join(' ') : undefined,
+  };
+});
+---
+
+<header id="site-header" data-scrolled="false" class="site-header sticky top-0 z-50">
+  <div class="shell flex h-16 items-center justify-between gap-6">
+    <a
+      href="/"
+      class="logo -ml-1 rounded-sm px-1 py-1 text-[0.9375rem] tracking-[-0.02em] whitespace-nowrap"
+      aria-label={`${site.name} — home`}
+    >
+      <span class="logo-prefix">SCS</span><span class="font-semibold text-ink"> Balaji</span>
+    </a>
+
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="flex items-center gap-1">
+        {
+          items.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="nav-link relative block rounded-sm px-3 py-2 text-[0.875rem]"
+                data-nav-link
+                data-watch={item.watch}
+                data-active={item.isPage ? '' : undefined}
+                aria-current={item.isPage ? 'page' : undefined}
+              >
+                {item.label}
+                <span class="nav-rule" aria-hidden="true" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-1.5">
+      {/*
+        `max-sm:hidden`, not `hidden sm:inline-flex`: Button's base sets
+        `inline-flex`, and Tailwind emits `.hidden` before `.inline-flex`, so a
+        plain `hidden` would lose. Variants are emitted after, so this wins.
+      */}
+      <Button
+        href={site.resume}
+        variant="secondary"
+        size="sm"
+        iconLeft="download"
+        class="max-sm:hidden"
+      >
+        Résumé
+      </Button>
+
+      <ThemeToggle />
+
+      <button
+        type="button"
+        id="menu-button"
+        aria-controls="mobile-menu"
+        aria-expanded="false"
+        aria-label="Open menu"
+        class="icon-button md:hidden"
+      >
+        <Icon name="menu" size={18} id="menu-open-icon" />
+        <Icon name="close" size={18} id="menu-close-icon" class="hidden" />
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" hidden class="border-t border-line bg-canvas md:hidden">
+    <nav aria-label="Mobile" class="shell py-3">
+      <ul class="flex flex-col">
+        {
+          items.map((item) => (
+            <li class="border-b border-line last:border-0">
+              <a
+                href={item.href}
+                class="nav-link flex items-center justify-between gap-3 py-3.5 text-subheading"
+                data-menu-link
+                data-active={item.isPage ? '' : undefined}
+                aria-current={item.isPage ? 'page' : undefined}
+              >
+                {item.label}
+                <Icon name="arrow-right" size={15} class="text-ink-3" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <Button
+        href={site.resume}
+        variant="secondary"
+        size="md"
+        iconLeft="download"
+        class="mt-5 w-full sm:hidden"
+      >
+        Résumé
+      </Button>
+    </nav>
+  </div>
+</header>
+
+<style>
+  /* Translucent only where the browser can actually blur; otherwise opaque, so
+     text never sits on a half-transparent bar. */
+  .site-header {
+    background-color: var(--canvas);
+    border-bottom: 1px solid transparent;
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  @supports (backdrop-filter: blur(10px)) {
+    .site-header {
+      background-color: color-mix(in oklab, var(--canvas) 82%, transparent);
+      backdrop-filter: blur(10px) saturate(1.4);
+    }
+  }
+
+  .site-header[data-scrolled="true"] {
+    border-bottom-color: var(--line);
+  }
+
+  .logo-prefix {
+    color: var(--ink-muted);
+    transition: color 0.2s ease;
+  }
+
+  .logo:hover .logo-prefix {
+    color: var(--accent);
+  }
+
+  .nav-link {
+    color: var(--ink-secondary);
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: var(--ink);
+  }
+
+  .nav-link[data-active] {
+    color: var(--ink);
+  }
+
+  .nav-rule {
+    position: absolute;
+    inset-inline: 0.75rem;
+    bottom: -1px;
+    height: 1px;
+    background-color: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s var(--ease-out-quint);
+  }
+
+  .nav-link[data-active] .nav-rule {
+    transform: scaleX(1);
+  }
+</style>
+
+<script>
+  const header = document.getElementById('site-header');
+  const menuButton = document.getElementById('menu-button');
+  const menu = document.getElementById('mobile-menu');
+  const openIcon = document.getElementById('menu-open-icon');
+  const closeIcon = document.getElementById('menu-close-icon');
+
+  /* --- Header hairline appears once the page has moved --- */
+  if (header) {
+    let ticking = false;
+
+    const update = () => {
+      header.dataset.scrolled = String(window.scrollY > 8);
+      ticking = false;
+    };
+
+    update();
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+  }
+
+  /* --- Mobile menu --- */
+  if (menuButton && menu) {
+    const setOpen = (open: boolean) => {
+      menu.hidden = !open;
+      menuButton.setAttribute('aria-expanded', String(open));
+      menuButton.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      openIcon?.classList.toggle('hidden', open);
+      closeIcon?.classList.toggle('hidden', !open);
+    };
+
+    menuButton.addEventListener('click', () => setOpen(menu.hidden));
+
+    for (const link of menu.querySelectorAll('[data-menu-link]')) {
+      link.addEventListener('click', () => setOpen(false));
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !menu.hidden) {
+        setOpen(false);
+        menuButton.focus();
+      }
+    });
+
+    // Crossing into the desktop breakpoint would otherwise strand an open panel.
+    window.matchMedia('(min-width: 768px)').addEventListener('change', (event) => {
+      if (event.matches) setOpen(false);
+    });
+  }
+
+  /* --- Active section tracking (homepage only) --- */
+  const watchers = document.querySelectorAll<HTMLAnchorElement>(
+    '[data-nav-link][data-watch]',
+  );
+
+  if (watchers.length > 0) {
+    const linkFor = new Map<string, HTMLAnchorElement>();
+
+    for (const link of watchers) {
+      for (const id of (link.dataset.watch ?? '').split(' ').filter(Boolean)) {
+        linkFor.set(id, link);
+      }
+    }
+
+    const targets = [...linkFor.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
+
+    if (targets.length > 0) {
+      const order = targets.map((element) => element.id);
+      const visible = new Set<string>();
+
+      const paint = () => {
+        const activeId = order.find((id) => visible.has(id));
+        for (const link of watchers) delete link.dataset.active;
+        if (activeId) linkFor.get(activeId)?.setAttribute('data-active', '');
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) visible.add(entry.target.id);
+            else visible.delete(entry.target.id);
+          }
+          paint();
+        },
+        // Bias the band toward the upper third of the viewport so the section
+        // you're actually reading is the one that's marked.
+        { rootMargin: '-20% 0px -65% 0px', threshold: 0 },
+      );
+
+      for (const target of targets) observer.observe(target);
+    }
+  }
+</script>

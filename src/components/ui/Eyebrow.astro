@@ -1,0 +1,20 @@
+---
+/**
+ * Section eyebrow: a short accent rule, an index, and a mono label.
+ * Accent is reserved for the rule so the colour stays scarce.
+ */
+interface Props {
+  /** Zero-padded section number, e.g. "01". */
+  index?: string;
+  label: string;
+  class?: string;
+}
+
+const { index, label, class: className } = Astro.props;
+---
+
+<p class:list={['flex items-center gap-3', className]}>
+  <span class="h-px w-7 bg-accent" aria-hidden="true"></span>
+  {index && <span class="mono-label text-ink-3">{index}</span>}
+  <span class="mono-label text-ink-2">{label}</span>
+</p>

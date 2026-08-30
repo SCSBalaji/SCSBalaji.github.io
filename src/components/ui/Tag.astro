@@ -1,0 +1,35 @@
+---
+/**
+ * Mono chip for technologies, tags, and inline metadata.
+ * `href` turns it into a link; otherwise it's an inert span.
+ */
+interface Props {
+  href?: string;
+  /** `line` has a visible border, `plain` is borderless text. */
+  variant?: 'line' | 'plain';
+  class?: string;
+}
+
+const { href, variant = 'line', class: className } = Astro.props;
+
+const classes = [
+  'mono-meta inline-flex items-center rounded-sm text-ink-2 transition-colors duration-200',
+  variant === 'line'
+    ? 'border border-line bg-raised px-2 py-[0.1875rem]'
+    : 'px-0 py-[0.1875rem]',
+  href && 'hover:border-line-strong hover:text-ink',
+  className,
+];
+---
+
+{
+  href ? (
+    <a href={href} class:list={classes}>
+      <slot />
+    </a>
+  ) : (
+    <span class:list={classes}>
+      <slot />
+    </span>
+  )
+}

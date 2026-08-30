@@ -1,0 +1,506 @@
+---
+/**
+ * Contact.
+ *
+ * The form is real: it validates on the client, runs a proper idle → submitting
+ * → success/error cycle, and reports failures honestly. What it does on submit
+ * depends on `site.contact.endpoint`:
+ *
+ *   endpoint: null  → placeholder mode. Hands the composed message off to the
+ *                     visitor's mail client and says so. Never fakes a success.
+ *   endpoint: '...' → POSTs JSON and reports the real result.
+ *
+ * Switching between the two is one line in src/data/site.ts — see the README.
+ */
+import { site } from '~/data/site';
+import { profiles } from '~/data/profiles';
+import Button from '~/components/ui/Button.astro';
+import Icon from '~/components/ui/Icon.astro';
+import Section from '~/components/ui/Section.astro';
+
+const { endpoint, fields } = site.contact;
+const reachable = profiles.filter((p) =>
+  ['LinkedIn', 'GitHub'].includes(p.platform),
+);
+---
+
+<Section
+  id="contact"
+  index="08"
+  label="Contact"
+  title="Let's talk"
+  intro="Open to internships, graduate roles, and interesting problems in cloud or applied ML. I reply to everything that isn't automated."
+  tone="sunken"
+>
+  <div class="grid gap-12 lg:grid-cols-12 lg:gap-x-16">
+    <form
+      id="contact-form"
+      class="lg:col-span-7"
+      novalidate
+      data-endpoint={endpoint ?? undefined}
+      data-mailto={site.email}
+    >
+      {
+        Object.entries(fields).map(([name, value]) => (
+          <input type="hidden" name={name} value={value} />
+        ))
+      }
+
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div class="field">
+          <label for="name" class="field-label">Name</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autocomplete="name"
+            required
+            maxlength="120"
+            class="field-input"
+            aria-describedby="name-error"
+          />
+          <p id="name-error" class="field-error" data-error-for="name" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="email" class="field-label">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            maxlength="254"
+            class="field-input"
+            aria-describedby="email-error"
+          />
+          <p id="email-error" class="field-error" data-error-for="email" hidden></p>
+        </div>
+      </div>
+
+      <div class="field mt-6">
+        <label for="message" class="field-label">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          rows="6"
+          required
+          maxlength="4000"
+          class="field-input resize-y"
+          aria-describedby="message-error"></textarea>
+        <p id="message-error" class="field-error" data-error-for="message" hidden></p>
+      </div>
+
+      <!-- Quiet spam trap. Real people never fill this in. -->
+      <div class="sr-field" aria-hidden="true">
+        <label for="company">Company</label>
+        <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+        <Button type="submit" variant="primary" size="md" id="contact-submit">
+          <span data-submit-idle>Send message</span>
+          <span data-submit-busy hidden class="inline-flex items-center gap-2">
+            <Icon name="spinner" size={15} class="animate-spin" />
+            Sending…
+          </span>
+        </Button>
+
+        {
+          !endpoint && (
+            <p class="text-micro text-ink-3 measure-tight">
+              This form currently opens your mail client — the hosted endpoint isn't
+              wired up yet.
+            </p>
+          )
+        }
+      </div>
+
+      <!-- Live region: the single place every outcome is announced. -->
+      <div id="contact-status" role="status" aria-live="polite" class="mt-6"></div>
+
+      <!--
+        Banner shells. Kept as templates so the icons still come from Icon.astro
+        and the client script ships no SVG markup of its own.
+      -->
+      <template id="result-success">
+        <div class="result" data-tone="success">
+          <Icon name="check" size={16} />
+          <p></p>
+        </div>
+      </template>
+      <template id="result-error">
+        <div class="result" data-tone="error">
+          <Icon name="alert" size={16} />
+          <p></p>
+        </div>
+      </template>
+      <template id="result-info">
+        <div class="result" data-tone="info">
+          <Icon name="mail" size={16} />
+          <p></p>
+        </div>
+      </template>
+    </form>
+
+    <div class="lg:col-span-4 lg:col-start-9">
+      <h3 class="mono-label text-ink-3">Direct</h3>
+
+      <a href={`mailto:${site.email}`} class="direct-link mt-5 flex items-center gap-2.5">
+        <Icon name="mail" size={16} class="text-ink-3" />
+        <span class="link-underline text-meta">{site.email}</span>
+      </a>
+
+      <button type="button" id="copy-email" class="copy-button mt-3" data-email={site.email}>
+        <Icon name="copy" size={14} />
+        <span data-copy-label>Copy address</span>
+      </button>
+
+      <div class="mt-10 border-t border-line pt-6">
+        <h3 class="mono-label text-ink-3">Also here</h3>
+        <ul class="mt-5 flex flex-col gap-3">
+          {
+            reachable.map((profile) => (
+              <li>
+                <a
+                  href={profile.url}
+                  target="_blank"
+                  rel="noopener noreferrer me"
+                  class="direct-link inline-flex items-center gap-2"
+                >
+                  <span class="link-underline text-meta">{profile.platform}</span>
+                  <Icon name="arrow-up-right" size={13} class="text-ink-3" />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <p class="mt-10 text-micro text-ink-3 measure-tight">
+        Based in {site.location} · {site.timezone}. Expect a reply within a couple of
+        days.
+      </p>
+    </div>
+  </div>
+</Section>
+
+<style>
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .field-label {
+    font-family: var(--font-code), ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-secondary);
+  }
+
+  .field-input {
+    inline-size: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .field-input::placeholder {
+    color: var(--ink-muted);
+  }
+
+  .field-input:hover {
+    border-color: var(--ink-muted);
+  }
+
+  .field-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-wash);
+  }
+
+  /* Invalid state is set by the script, not :invalid — so nothing turns red
+     before the visitor has had a chance to type. */
+  .field-input[aria-invalid="true"] {
+    border-color: var(--critical);
+  }
+
+  .field-input[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--critical) 18%, transparent);
+  }
+
+  .field-error {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--critical);
+  }
+
+  /* Honeypot: off-screen but not display:none, which bots skip. */
+  .sr-field {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .direct-link {
+    color: var(--ink-secondary);
+    transition: color 0.2s ease;
+  }
+
+  .direct-link:hover {
+    color: var(--accent);
+  }
+
+  .copy-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-code), ui-monospace, monospace;
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+    transition: color 0.2s ease;
+  }
+
+  .copy-button:hover {
+    color: var(--ink);
+  }
+
+  /* Result banner, rendered by the script. */
+  .result {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background-color: var(--canvas);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--ink-secondary);
+  }
+
+  .result[data-tone="success"] {
+    border-color: color-mix(in oklab, var(--positive) 40%, var(--line));
+  }
+
+  .result[data-tone="error"] {
+    border-color: color-mix(in oklab, var(--critical) 40%, var(--line));
+  }
+
+  .result svg {
+    margin-block-start: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .result[data-tone="success"] svg {
+    color: var(--positive);
+  }
+
+  .result[data-tone="error"] svg {
+    color: var(--critical);
+  }
+</style>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const status = document.getElementById('contact-status');
+  const submit = document.getElementById('contact-submit') as HTMLButtonElement | null;
+
+  if (form && status && submit) {
+    const idle = submit.querySelector<HTMLElement>('[data-submit-idle]');
+    const busy = submit.querySelector<HTMLElement>('[data-submit-busy]');
+    const endpoint = form.dataset.endpoint ?? null;
+    const mailto = form.dataset.mailto ?? '';
+
+    type FieldName = 'name' | 'email' | 'message';
+    const NAMES: FieldName[] = ['name', 'email', 'message'];
+
+    const inputOf = (name: FieldName) =>
+      form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null;
+
+    /** Deliberately permissive — the server is the real validator. */
+    const validate = (name: FieldName, value: string): string | null => {
+      const trimmed = value.trim();
+
+      if (name === 'name') {
+        if (!trimmed) return 'Please add your name.';
+        return trimmed.length < 2 ? 'That looks too short to be a name.' : null;
+      }
+
+      if (name === 'email') {
+        if (!trimmed) return 'Please add an email address so I can reply.';
+        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmed)
+          ? null
+          : "That email address doesn't look right.";
+      }
+
+      if (!trimmed) return 'Please write a message.';
+      return trimmed.length < 10 ? 'A little more detail would help.' : null;
+    };
+
+    const showError = (name: FieldName, message: string | null) => {
+      const input = inputOf(name);
+      const target = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+      if (!input || !target) return;
+
+      if (message) {
+        input.setAttribute('aria-invalid', 'true');
+        target.textContent = message;
+        target.hidden = false;
+      } else {
+        input.removeAttribute('aria-invalid');
+        target.textContent = '';
+        target.hidden = true;
+      }
+    };
+
+    const setBusy = (isBusy: boolean) => {
+      submit.disabled = isBusy;
+      submit.setAttribute('aria-busy', String(isBusy));
+      if (idle) idle.hidden = isBusy;
+      if (busy) busy.hidden = !isBusy;
+    };
+
+    const report = (tone: 'success' | 'error' | 'info', message: string) => {
+      status.innerHTML = '';
+
+      const template = document.getElementById(
+        `result-${tone}`,
+      ) as HTMLTemplateElement | null;
+
+      if (!template) {
+        status.textContent = message;
+        return;
+      }
+
+      const banner = template.content.cloneNode(true) as DocumentFragment;
+      const text = banner.querySelector('p');
+      if (text) text.textContent = message;
+      status.append(banner);
+    };
+
+    // Clear a field's error as soon as it becomes valid again.
+    for (const name of NAMES) {
+      const input = inputOf(name);
+      input?.addEventListener('input', () => {
+        if (input.getAttribute('aria-invalid') === 'true') {
+          showError(name, validate(name, input.value));
+        }
+      });
+      input?.addEventListener('blur', () => {
+        if (input.value.trim()) showError(name, validate(name, input.value));
+      });
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      // Honeypot filled → silently accept and go no further.
+      const trap = form.elements.namedItem('company') as HTMLInputElement | null;
+      if (trap?.value) {
+        report('success', 'Thanks — your message has been sent.');
+        form.reset();
+        return;
+      }
+
+      let firstInvalid: FieldName | null = null;
+
+      for (const name of NAMES) {
+        const input = inputOf(name);
+        const error = validate(name, input?.value ?? '');
+        showError(name, error);
+        if (error && !firstInvalid) firstInvalid = name;
+      }
+
+      if (firstInvalid) {
+        status.innerHTML = '';
+        inputOf(firstInvalid)?.focus();
+        return;
+      }
+
+      const values = {
+        name: (inputOf('name')?.value ?? '').trim(),
+        email: (inputOf('email')?.value ?? '').trim(),
+        message: (inputOf('message')?.value ?? '').trim(),
+      };
+
+      // --- Placeholder mode: hand off to the visitor's mail client ---
+      if (!endpoint) {
+        const subject = encodeURIComponent(`Portfolio enquiry from ${values.name}`);
+        const body = encodeURIComponent(`${values.message}\n\n— ${values.name}\n${values.email}`);
+        window.location.href = `mailto:${mailto}?subject=${subject}&body=${body}`;
+        report(
+          'info',
+          `Your mail client should be opening now. If nothing happens, email ${mailto} directly.`,
+        );
+        return;
+      }
+
+      // --- Live mode ---
+      setBusy(true);
+      status.innerHTML = '';
+
+      try {
+        const payload = new FormData(form);
+        payload.delete('company');
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: payload,
+        });
+
+        if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+
+        form.reset();
+        report('success', "Thanks — your message is on its way. I'll reply soon.");
+      } catch {
+        report(
+          'error',
+          `Something went wrong sending that. Please email ${mailto} directly instead.`,
+        );
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+
+  /* --- Copy-to-clipboard for the address --- */
+  const copyButton = document.getElementById('copy-email');
+
+  if (copyButton) {
+    const label = copyButton.querySelector<HTMLElement>('[data-copy-label]');
+    const original = label?.textContent ?? 'Copy address';
+    let timer: number | undefined;
+
+    copyButton.addEventListener('click', async () => {
+      const email = copyButton.dataset.email ?? '';
+
+      try {
+        await navigator.clipboard.writeText(email);
+        if (label) label.textContent = 'Copied';
+      } catch {
+        if (label) label.textContent = 'Press Ctrl+C to copy';
+      }
+
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (label) label.textContent = original;
+      }, 2000);
+    });
+  }
+</script>

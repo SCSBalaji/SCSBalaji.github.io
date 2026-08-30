@@ -1,0 +1,61 @@
+---
+/**
+ * Text link with a trailing arrow that nudges on hover. Used for every
+ * "see all" / "read more" / outbound affordance so they all behave alike.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import type { IconName } from '~/lib/icons';
+import Icon from './Icon.astro';
+
+interface Props extends HTMLAttributes<'a'> {
+  href: string;
+  external?: boolean;
+  icon?: IconName;
+  /** Accent-coloured instead of inheriting ink. */
+  accent?: boolean;
+  size?: 'sm' | 'md';
+}
+
+const {
+  href,
+  external = false,
+  icon,
+  accent = false,
+  size = 'md',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const arrow = icon ?? (external ? 'arrow-up-right' : 'arrow-right');
+// A back link reads better with the arrow leading, and it should nudge the way
+// it points — so `arrow-left` flips both the order and the hover direction.
+const leading = arrow === 'arrow-left';
+---
+
+<a
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+  class:list={[
+    'group/link inline-flex items-center gap-1.5 font-medium',
+    'transition-colors duration-200',
+    leading && 'flex-row-reverse',
+    size === 'sm' ? 'text-[0.8125rem]' : 'text-[0.9375rem]',
+    accent ? 'text-accent hover:text-accent-hover' : 'text-ink hover:text-accent',
+    className,
+  ]}
+  {...rest}
+>
+  <span class="link-underline"><slot /></span>
+  <Icon
+    name={arrow}
+    size={15}
+    class:list={[
+      'transition-transform duration-300 ease-[var(--ease-out-quint)]',
+      arrow === 'arrow-up-right' &&
+        'group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5',
+      arrow === 'arrow-right' && 'group-hover/link:translate-x-1',
+      leading && 'group-hover/link:-translate-x-1',
+    ]}
+  />
+</a>

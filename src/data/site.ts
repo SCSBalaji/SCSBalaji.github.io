@@ -14,25 +14,23 @@ export const site = {
   /** Shown under the hero name and used in the Person structured data. */
   role: 'Computer Science Engineer',
 
-  // TODO: replace with your real contact address.
   email: 'hello@scsbalaji.tech',
 
-  // TODO: replace with your city / region.
-  location: 'Tamil Nadu, India',
+  location: 'Hyderabad, Telangana, India',
   timezone: 'IST · UTC+5:30',
 
   /**
    * Drop your PDF at `public/resume.pdf`. Until then this link 404s —
    * see README.md.
    */
-  resume: '/resume.pdf',
+  resume: '/SCSBALAJI_RESUME_v3.pdf',
 
   /** The four practice areas. Rendered as the hero metadata strip. */
   focus: [
     'Software Engineering',
-    'Cloud & DevOps',
     'AI & Machine Learning',
-    'Modern Web',
+    'Cloud & DevOps',
+    'Modern Web Technologies',
   ],
 
   /**
@@ -41,7 +39,7 @@ export const site = {
    */
   status: {
     active: true,
-    label: 'Open to 2026 opportunities', // TODO: keep this accurate.
+    label: 'Open to opportunities',
   },
 
   hero: {

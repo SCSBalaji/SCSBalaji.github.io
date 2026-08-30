@@ -21,8 +21,6 @@ export type Profile = {
   sameAs?: boolean;
 };
 
-// TODO: replace every username and URL below with your real profiles.
-// Delete any platform you don't actively maintain.
 export const profiles: Profile[] = [
   {
     platform: 'GitHub',
@@ -46,18 +44,11 @@ export const profiles: Profile[] = [
     context: 'Daily problem-solving practice — mostly graphs and dynamic programming lately.',
   },
   {
-    platform: 'GeeksforGeeks',
-    mark: 'GF',
-    handle: 'scsbalaji',
-    url: 'https://www.geeksforgeeks.org/user/scsbalaji',
-    context: 'Practice track and the occasional article on data structures.',
-  },
-  {
     platform: 'Kaggle',
     mark: 'KG',
     handle: '@scsbalaji',
     url: 'https://www.kaggle.com/scsbalaji',
-    context: 'Notebooks and competition work, largely tabular and vision problems.',
+    context: 'Notebooks and Datasets',
   },
   {
     platform: 'Credly',
@@ -70,7 +61,7 @@ export const profiles: Profile[] = [
     platform: 'Cloud Skills Boost',
     mark: 'GC',
     handle: 'scsbalaji',
-    url: 'https://www.cloudskillsboost.google/public_profiles/scsbalaji',
+    url: 'https://www.skills.google/public_profiles/88d8618a-b04d-419f-b02f-237e579db578',
     context: 'Google Cloud labs and learning paths, with completed skill badges.',
   },
 ];
